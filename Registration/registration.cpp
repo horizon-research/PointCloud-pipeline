@@ -112,14 +112,42 @@ void simple_sac(const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt
 
 }
 
-void simple_svd()
+void simple_CorrEst(const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt,
+	pcl::Correspondences * all_corres, pcl::Correspondences * inliers_corres)
 {
+	pcl::registration::CorrespondenceEstimation<PointT, PointT> est;
+	/*  
+	Correspondence:
+		http://docs.pointclouds.org/trunk/correspondence_8h_source.html
 
+	Correspondences:
+		typedef std::vector< pcl::Correspondence, 
+		Eigen::aligned_allocator<pcl::Correspondence> > Correspondences;
+	*/
+
+	est.setInputSource (cloud_src);
+	est.setInputTarget (cloud_tgt);
+
+	est.determineCorrespondences (*all_corres);
+
+	// Display: correspondences
+	// for (pcl::Correspondences::iterator it = (*all_corres).begin(); it != (*all_corres).end(); ++it)
+	// {
+	// 	std::cout << ' ' << (*it).index_query << ", " << (*it).index_match << ", " << (*it).distance;
+	// 	std::cout << std::endl;
+	// }
 }
 
-void simple_CorrEst(const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt)
+void simple_svd(const PointCloud::Ptr cloud_src, const PointCloud::Ptr cloud_tgt, 
+	const pcl::Correspondences & all_corres, Eigen::Matrix4f * trans_ptr)
 {
+	pcl::registration::TransformationEstimationSVD<PointT, PointT> svd;
 
+	svd.estimateRigidTransformation(*cloud_src, *cloud_tgt, 
+		all_corres, *trans_ptr);
+
+	// std::cout << "Transformation from SVD: " << std::endl;
+	// std::cout << *trans_ptr << std::endl << std::endl;
 }
 
 int main(int argc, char const *argv[])
@@ -127,8 +155,11 @@ int main(int argc, char const *argv[])
 	PointCloudPtr cloud_in (new PointCloud);
 	PointCloudPtr cloud_out (new PointCloud);
 
+	pcl::Correspondences all_correspondences;
+	pcl::Correspondences inliers;
+
 	// toy data
-	generate_cloud(cloud_in, 1000, 1, true, false);
+	generate_cloud(cloud_in, 100, 1, true, false);
 	*cloud_out = *cloud_in;
 	std::cout << "size:" << cloud_out->points.size() << std::endl;
 
@@ -146,44 +177,16 @@ int main(int argc, char const *argv[])
 
 	/* Correspondence Estimation */
 	// to-do: k-d tree method
-	// to-do: add to func
-
-	/*  
-	Correspondence:
-		http://docs.pointclouds.org/trunk/correspondence_8h_source.html
-
-	Correspondences:
-		typedef std::vector< pcl::Correspondence, 
-		Eigen::aligned_allocator<pcl::Correspondence> > Correspondences;
-	*/
-	pcl::registration::CorrespondenceEstimation<PointT, PointT> est;
-	pcl::Correspondences all_correspondences;
-	pcl::Correspondences inliers;
-	pcl::Correspondence corr;
-
-	est.setInputSource (cloud_in);
-	est.setInputTarget (cloud_out);
-	est.determineCorrespondences (all_correspondences);
-
-	// Display: correspondences
-	// for (pcl::Correspondences::iterator it = all_correspondences.begin(); 
-	// 	it != all_correspondences.end(); ++it)
-	// {
-	// 	corr = *it;
-	// 	std::cout << ' ' << corr.index_query << ", " << corr.index_match << ", " << corr.distance;
-	// 	std::cout << std::endl;
-	// }
+	simple_CorrEst(cloud_in, cloud_out, &all_correspondences, &inliers);
 
 	/* Transformation Estimation SVD */
-	// https://eigen.tuxfamily.org/dox/group__TutorialMatrixClass.html
-	// typedef Matrix<float, 4, 4> Matrix4f;
-	// Eigen::Matrix4f *transformation_svd;
+	Eigen::Matrix4f *transformation_svd (new Eigen::Matrix4f);
+	const pcl::Correspondences & all_corr = all_correspondences;
 
-	// pcl::registration::TransformationEstimationSVD<PointT, PointT> svd;
-	// svd.estimateRigidTransformation(*cloud_in, *cloud_out, all_correspondences, 
-	// 	transformation_svd);
-	// std::cout << "Transformation from SVD: " << std::endl;
-	// std::cout << transformation_svd << std::endl << std::endl;
+	simple_svd(cloud_in, cloud_out, all_corr, transformation_svd);
+	
+	std::cout << "Transformation from SVD: " << std::endl;
+	std::cout << *transformation_svd << std::endl << std::endl;
 
 	/* SAC section */
 	Eigen::Matrix4f *transformation_sac_ptr (new Eigen::Matrix4f); 
@@ -201,3 +204,9 @@ int main(int argc, char const *argv[])
 
 	return 0;
 }
+
+/*
+	Helpful links:
+	https://eigen.tuxfamily.org/dox/group__TutorialMatrixClass.html
+	https://stackoverflow.com/questions/1143262/what-is-the-difference-between-const-int-const-int-const-and-int-const
+*/
