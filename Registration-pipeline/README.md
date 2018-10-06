@@ -6,10 +6,10 @@ In the *registration.cpp* is the registration pipeline implementation following 
 -------------------------------
 #### Log
 
-By 10.05:
 - [x] Build a pipeline with *Correspondence Estimation*, *Correspondence Rejection* and *ICP*.
+- [x] Modify interfaces for better scalability.
 - [ ] Test on the **Kitti** dataset.
-- [ ] Comment and Documentation.
+- [ ] Comment and Documentation. 
 - [ ] ...
 -------------------------------
 #### Reference Links
