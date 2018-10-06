@@ -43,11 +43,13 @@ typedef pcl::PointCloud<PointT>::ConstPtr PointCloudConstPtr;
 
 typedef pcl::PointCloud<pcl::Normal> SurfaceNormals;
 
-typedef pcl::FPFHSignature33 LocalFeatureT;
-typedef pcl::PointCloud<pcl::FPFHSignature33> LocalFeatures;
+typedef pcl::FPFHSignature33 FPFH_FeatureT;
+typedef pcl::PointCloud<pcl::FPFHSignature33> FPFH_Features;
+
 typedef pcl::search::KdTree<pcl::PointXYZ> SearchMethod;
 
-typedef pcl::PointCloud<pcl::PFHSignature125> pfhFeature;
+typedef pcl::PFHSignature125 PFH_FeatureT;
+typedef pcl::PointCloud<pcl::PFHSignature125> PFH_Features;
 
 // A struct for storing alignment results
 struct Result
@@ -58,7 +60,7 @@ struct Result
 };
 
 /*
-	Representation of Point Cloud Data
+  Representation of Point Cloud Data
 */
 class FeatureCloud
 {
@@ -102,77 +104,74 @@ class FeatureCloud
       xyz_key_ = xyz_key;
     }
 
-    /* 
-      Return the pointer to the key point cloud (PointCloud Type).
-    */
+    // Return the pointer to the key point cloud (PointCloud Type).
     PointCloud::Ptr
     getKeyPoints () const
     {
       return (xyz_key_);
     }
 
-    // Set key point cloud (PointCloud Type).
+    // Set initially aligned point cloud (PointCloud Type).
     void
     setTransformedCloud (PointCloud::Ptr xyz_transformed)
     {
       xyz_transformed_ = xyz_transformed;
     }
-    /*
-      Return the pointer to initially aligned cloud.
-    */
+    // Return the pointer to initially aligned cloud.
     PointCloud::Ptr
     getTransformedCloud () const
     {
       return (xyz_transformed_);
     }
 
-    // Get a pointer to the cloud of 3D surface normals.
+    // Set Normals
+    void setSurfaceNormals (SurfaceNormals::Ptr normals) 
+    {
+      normals_ = normals;
+    }
+    // Get the pointer to the cloud of 3D surface normals.
     SurfaceNormals::Ptr
     getSurfaceNormals () const
     {
       return (normals_);
     }
 
-    // Get a pointer to the cloud of feature descriptors.
-    LocalFeatures::Ptr
-    getLocalFeatures () const
+    // Set FPFH features.
+    void setFeatures_FPFH (FPFH_Features::Ptr fpfh_features)
     {
-      return (features_);
+      fpfh_features_ = fpfh_features;
     }
 
-    // Compute the surface normals and local features.
-    void
-    computeFeatures ()
+    // Get the pointer to the cloud of feature descriptors (FPFH).
+    FPFH_Features::Ptr
+    getFeatures_FPFH () const
     {
-      computeSurfaceNormals ();
-      computeLocalFeatures ();
+      return (fpfh_features_);
     }
 
-    // Compute the surface normals
-    void
-    computeSurfaceNormals ()
+    // Get a pointer to the cloud of feature descriptors (PFH).
+    PFH_Features::Ptr
+    getFeatures_PFH () const
     {
-      normals_ = SurfaceNormals::Ptr (new SurfaceNormals);
-
-      pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> norm_est;
-      norm_est.setInputCloud (xyz_);
-      norm_est.setSearchMethod (search_method_xyz_);
-      norm_est.setRadiusSearch (normal_radius_);
-      norm_est.compute (*normals_);
+      return (pfh_features_);
     }
 
-    // Compute the local feature descriptors
-    void
-    computeLocalFeatures ()
-    {
-      features_ = LocalFeatures::Ptr (new LocalFeatures);
 
-      pcl::FPFHEstimation<pcl::PointXYZ, pcl::Normal, pcl::FPFHSignature33> fpfh_est;
-      fpfh_est.setInputCloud (xyz_);
-      fpfh_est.setInputNormals (normals_);
-      fpfh_est.setSearchMethod (search_method_xyz_);
-      fpfh_est.setRadiusSearch (feature_radius_);
-      fpfh_est.compute (*features_);
+    // Parameters
+    float getNormalRadius() const
+    {
+      return (normal_radius_);
+    }
+
+    float getFeatureRadius() const
+    {
+      return (feature_radius_);
+    }
+
+    SearchMethod::Ptr
+    getSearchMethod() const
+    {
+      return (search_method_xyz_);
     }
 
   private:
@@ -186,13 +185,12 @@ class FeatureCloud
     PointCloud::Ptr xyz_transformed_;
 
     /*Features*/
-
       // Normals
     SurfaceNormals::Ptr normals_;
-      // Feature:FPFH
-    LocalFeatures::Ptr features_;
-      // Feature:
-    pfhFeature::Ptr pfh_features;
+      // Feature: FPFH
+    FPFH_Features::Ptr fpfh_features_;
+      // Feature: PFH
+    PFH_Features::Ptr pfh_features_;
 
     // Search Methods
     SearchMethod::Ptr search_method_xyz_;
@@ -202,11 +200,10 @@ class FeatureCloud
     float feature_radius_;
 };
 
-/*
-	Utils
-*/
+
+/* Utils */
 void filtering(const PointCloud::Ptr cloud_src, \
-	const PointCloud::Ptr filtered)
+  const PointCloud::Ptr filtered)
 {
     std::cout << "Before Filtering:" << cloud_src->size() << std::endl;
     pcl::StatisticalOutlierRemoval<PointT> sor;
@@ -228,6 +225,55 @@ void downSample(const PointCloud::Ptr cloud_src, \
     std::cout << "After Downsample: " << filtered->size() << std::endl;
 }
 
+// Compute the surface normals
+void
+computeSurfaceNormals (FeatureCloud &cloud)
+{
+    SurfaceNormals::Ptr normals_ (new SurfaceNormals);
+
+    pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> norm_est;
+
+    norm_est.setInputCloud (cloud.getPointCloud());
+    norm_est.setSearchMethod (cloud.getSearchMethod());
+    norm_est.setRadiusSearch (cloud.getNormalRadius());
+
+    norm_est.compute (*normals_);
+
+    cloud.setSurfaceNormals(normals_);
+}
+
+// Compute the local feature descriptors
+void
+computeFeatures_FPFH (FeatureCloud &cloud)
+{
+    FPFH_Features::Ptr fpfh_features_ (new FPFH_Features);
+
+    pcl::FPFHEstimation<pcl::PointXYZ, pcl::Normal, pcl::FPFHSignature33> fpfh_est;
+
+    fpfh_est.setInputCloud (cloud.getPointCloud());
+    fpfh_est.setInputNormals (cloud.getSurfaceNormals());
+    
+    fpfh_est.setSearchMethod (cloud.getSearchMethod());
+    fpfh_est.setRadiusSearch (cloud.getFeatureRadius());
+    
+    fpfh_est.compute (*fpfh_features_);
+
+    cloud.setFeatures_FPFH(fpfh_features_);
+}
+
+// to-do:computeFeatures_PFH
+
+// Compute the surface normals and local features.
+void
+computeFeatures (FeatureCloud &cloud)
+{
+  computeSurfaceNormals (cloud);
+  computeFeatures_FPFH (cloud);
+
+  // Add more feature computation here.
+}
+
+// Narf Key Point Detection
 void narfKeyPoints(const PointCloud::Ptr cloud_src, \
   const PointCloud::Ptr keyPoints_NARF)
 {
@@ -277,7 +323,6 @@ void narfKeyPoints(const PointCloud::Ptr cloud_src, \
     keypoints.points.resize (keypoint_indices.points.size ());
     for (size_t i=0; i<keypoint_indices.points.size (); ++i)
         keypoints.points[i].getVector3fMap () = range_image.points[keypoint_indices.points[i]].getVector3fMap ();
-
 }
 
 void sac_ia(FeatureCloud &source_cloud, FeatureCloud &target_cloud, \
@@ -292,10 +337,10 @@ void sac_ia(FeatureCloud &source_cloud, FeatureCloud &target_cloud, \
 
   sac_ia_.setInputSource (source_cloud.getPointCloud ());
   
-  sac_ia_.setSourceFeatures (source_cloud.getLocalFeatures ());
+  sac_ia_.setSourceFeatures (source_cloud.getFeatures_FPFH ());
 
   sac_ia_.setInputTarget (target_cloud.getPointCloud ());
-  sac_ia_.setTargetFeatures (target_cloud.getLocalFeatures ());
+  sac_ia_.setTargetFeatures (target_cloud.getFeatures_FPFH ());
 
   pcl::PointCloud<pcl::PointXYZ> registration_output;
   sac_ia_.align (registration_output);
@@ -307,16 +352,16 @@ void sac_ia(FeatureCloud &source_cloud, FeatureCloud &target_cloud, \
 void correspondence_estimation(FeatureCloud &source_cloud, FeatureCloud &target_cloud,\
   pcl::Correspondences &all_corres)
 {
-  pcl::registration::CorrespondenceEstimation<LocalFeatureT, LocalFeatureT> est;
+  pcl::registration::CorrespondenceEstimation<FPFH_FeatureT, FPFH_FeatureT> est;
 
-  est.setInputSource (source_cloud.getLocalFeatures());
-  est.setInputTarget (target_cloud.getLocalFeatures());
+  est.setInputSource (source_cloud.getFeatures_FPFH());
+  est.setInputTarget (target_cloud.getFeatures_FPFH());
 
   est.determineCorrespondences (all_corres);
 }
 
 void correspondences_rejection(FeatureCloud &source_cloud, FeatureCloud &target_cloud,\
-  pcl::Correspondences &correspondences, pcl::Correspondences &inliers)
+  pcl::Correspondences &correspondences, pcl::Correspondences &inliers, int N=1000)
 {
   pcl::registration::CorrespondenceRejectorSampleConsensus<PointT> sac;
   
@@ -324,21 +369,17 @@ void correspondences_rejection(FeatureCloud &source_cloud, FeatureCloud &target_
   sac.setInputTarget(target_cloud.getPointCloud ());
 
   // sac.setInlierThreshold(epsilon);
-  sac.setMaximumIterations(1000);
+  sac.setMaximumIterations(N);
 
   sac.getRemainingCorrespondences(correspondences, inliers);
   
-  /* !!! */
-  
   Eigen::Matrix4f transformation = sac.getBestTransformation();
   PointCloud::Ptr transformed_cloud (new PointCloud);
-  
   pcl::transformPointCloud (*source_cloud.getPointCloud (), *transformed_cloud, transformation);
 
   source_cloud.setTransformedCloud(transformed_cloud);
 
   std::cout << "Transformation (RanSac): " << std::endl << transformation << std::endl;
-
 }
 
 void iterative_closest_points(FeatureCloud &source_cloud, FeatureCloud &target_cloud,\
@@ -364,8 +405,17 @@ int main(int argc, char **argv)
 
 	/*
 		Section1: To load a series of PCDs.
-		Use 'object_templates.txt' to specify point cloud frames.
+
+		Here in this section, we use another individual txt file to specify point clouds we wanto stitch.
+    The content in the .txt file should be like:
+    
+    ./data/object_template_0.pcd
+    ./data/object_template_1.pcd
+
+    And the path to this .txt file should be an argv argument when executing the program.
 	*/
+
+  // Point Clouds are represented as instances of the FeatureCloud class.
 	std::vector<FeatureCloud> object_templates;
 
 	std::ifstream input_stream (argv[1]);
@@ -392,11 +442,15 @@ int main(int argc, char **argv)
     return -1;
   }  
 
+  // Till now, the point clouds should have been loaded and stored as FeatureCloud instances.
+
   /*
-      Filtering, DownSampling, KeyPoint Detection;
-      Feature Normal calculation;
+      Section 2: Preprocessing.
+
+        Filtering, DownSampling, KeyPoint Detection, 
+        Feature and Normal calculation, ...
   */
-  PointCloud cloud_;
+
 	for (size_t i = 0; i != object_templates.size(); ++i)
 	{
 		PointCloud::Ptr cloud_ptr = object_templates[i].getPointCloud();
@@ -404,29 +458,33 @@ int main(int argc, char **argv)
 
     filtering(cloud_ptr, cloud_ptr);
     downSample(cloud_ptr, cloud_ptr, 0.05);
-
     narfKeyPoints(cloud_ptr, keyPoints_ptr);
     object_templates[i].setKeyPoints(keyPoints_ptr);  
 
     // Compute normals and features such as pfh.
-    object_templates[i].computeFeatures();
+    computeFeatures(object_templates[i]);
   }
 
   /*
-    MEthod1: SAC-IA based method.
+    Section 3: Alignment.
+    
+    In the first two stages, we already have loaded and calculated the features of the clouds.
+    In this stage, we perform alignment based on these features.
   */
+  
+
+  // Method1: SAC-IA based method.
+
+  // As a struct, Result stores the transformation matrix and alignment score. 
   Result* sac_ia_result_ptr, sac_ia_result;
   sac_ia_result_ptr = &sac_ia_result;
   
   sac_ia(object_templates[0], object_templates[1], sac_ia_result_ptr);
 
-  std::cout << std::endl << "Score: " << sac_ia_result.fitness_score << std::endl;
-  std::cout << "Transformation: " << std::endl << sac_ia_result.final_transformation << std::endl;
+  std::cout << "Transformation (SAC-IA): " << std::endl << sac_ia_result.final_transformation << std::endl;
+  std::cout << std::endl << "Score: " << sac_ia_result.fitness_score << std::endl <<std::endl;
 
-  /*
-    Method2: 
-    Correspondence Estimation & Rejection.
-  */
+  //Method2: Correspondence Estimation & Rejection.
   Correspondences all_correspondences;
   Correspondences inliers;
 
@@ -436,17 +494,12 @@ int main(int argc, char **argv)
   correspondences_rejection(object_templates[0], object_templates[1], \
     all_correspondences, inliers);
 
-  std::cout << *object_templates[0].getTransformedCloud() << std::endl;
-
-  /* 
-    ICP Section.
-  */
+  // ICP
   Result* final_result_ptr, final_result;
   final_result_ptr = &final_result;
 
-  // Eigen::Matrix4f *transformation_icp_ptr (new Eigen::Matrix4f); 
-  // iterative_closest_points(object_templates[0], object_templates[1], \
-  //   final_result_ptr);
+  iterative_closest_points(object_templates[0], object_templates[1], \
+    final_result_ptr);
   
   std::cout << "Transformation from ICP: " << std::endl;
   std::cout << final_result.final_transformation << std::endl;
