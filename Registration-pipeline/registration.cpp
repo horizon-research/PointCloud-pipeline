@@ -1,5 +1,7 @@
 #include <limits>
 #include <fstream>
+#include <iostream>
+#include <stdio.h>
 #include <vector>
 #include <Eigen/Core>
 
@@ -8,7 +10,6 @@
 #include <pcl/io/pcd_io.h>
 
 #include <pcl/common/transforms.h>
-
 #include <pcl/kdtree/kdtree_flann.h>
 
 //filters
@@ -33,8 +34,10 @@
 #include <pcl/registration/correspondence_rejection_sample_consensus.h>
 #include <pcl/registration/icp.h>
 
+#include <ctime>
+
 typedef pcl::PointXYZ PointT;
-typedef pcl::PointCloud<pcl::PointXYZ> PointCloud;
+typedef pcl::PointCloud<PointT> PointCloud;
 
 typedef pcl::Correspondences Correspondences;
 
@@ -46,7 +49,7 @@ typedef pcl::PointCloud<pcl::Normal> SurfaceNormals;
 typedef pcl::FPFHSignature33 FPFH_FeatureT;
 typedef pcl::PointCloud<pcl::FPFHSignature33> FPFH_Features;
 
-typedef pcl::search::KdTree<pcl::PointXYZ> SearchMethod;
+typedef pcl::search::KdTree<PointT> SearchMethod;
 
 typedef pcl::PFHSignature125 PFH_FeatureT;
 typedef pcl::PointCloud<pcl::PFHSignature125> PFH_Features;
@@ -72,7 +75,6 @@ class FeatureCloud
     {}
 
     ~FeatureCloud () {}
-
     /*
       Initialize the clouds.
       Pass in an existing cloud or Load from designated PCD files.
@@ -156,7 +158,6 @@ class FeatureCloud
       return (pfh_features_);
     }
 
-
     // Parameters
     float getNormalRadius() const
     {
@@ -188,7 +189,7 @@ class FeatureCloud
       // Normals
     SurfaceNormals::Ptr normals_;
       // Feature: FPFH
-    FPFH_Features::Ptr fpfh_features_;
+    FPFH_Features::Ptr fpfh_features_ ;
       // Feature: PFH
     PFH_Features::Ptr pfh_features_;
 
@@ -200,8 +201,6 @@ class FeatureCloud
     float feature_radius_;
 };
 
-
-/* Utils */
 void filtering(const PointCloud::Ptr cloud_src, \
   const PointCloud::Ptr filtered)
 {
@@ -336,9 +335,7 @@ void sac_ia(FeatureCloud &source_cloud, FeatureCloud &target_cloud, \
   sac_ia_.setMaximumIterations (nr_iterations_);
 
   sac_ia_.setInputSource (source_cloud.getPointCloud ());
-  
   sac_ia_.setSourceFeatures (source_cloud.getFeatures_FPFH ());
-
   sac_ia_.setInputTarget (target_cloud.getPointCloud ());
   sac_ia_.setTargetFeatures (target_cloud.getFeatures_FPFH ());
 
@@ -352,7 +349,10 @@ void sac_ia(FeatureCloud &source_cloud, FeatureCloud &target_cloud, \
 void correspondence_estimation(FeatureCloud &source_cloud, FeatureCloud &target_cloud,\
   pcl::Correspondences &all_corres)
 {
+
   pcl::registration::CorrespondenceEstimation<FPFH_FeatureT, FPFH_FeatureT> est;
+
+  source_cloud.getFeatures_FPFH();
 
   est.setInputSource (source_cloud.getFeatures_FPFH());
   est.setInputTarget (target_cloud.getFeatures_FPFH());
@@ -379,7 +379,7 @@ void correspondences_rejection(FeatureCloud &source_cloud, FeatureCloud &target_
 
   source_cloud.setTransformedCloud(transformed_cloud);
 
-  std::cout << "Transformation (RanSac): " << std::endl << transformation << std::endl;
+  // std::cout << "Transformation (RanSac): " << std::endl << transformation << std::endl;
 }
 
 void iterative_closest_points(FeatureCloud &source_cloud, FeatureCloud &target_cloud,\
@@ -400,110 +400,226 @@ void iterative_closest_points(FeatureCloud &source_cloud, FeatureCloud &target_c
   result->fitness_score = icp.getFitnessScore();
 }
 
-int main(int argc, char **argv)
+// utils
+bool string_sort (std::string i,std::string j) 
 {
+  // the part before '.bin' 
+  std::string foo_i = i.substr(0,i.length()-4);
+  std::string foo_j = j.substr(0,i.length()-4);
 
-	/*
-		Section1: To load a series of PCDs.
+  return (foo_i<foo_j); 
+}
 
-		Here in this section, we use another individual txt file to specify point clouds we wanto stitch.
-    The content in the .txt file should be like:
-    
-    ./data/object_template_0.pcd
-    ./data/object_template_1.pcd
 
-    And the path to this .txt file should be an argv argument when executing the program.
-	*/
+void listdir(std::string path_dir, std::vector<std::string> &files)
+{
+  DIR* dirp = opendir(path_dir.c_str());
 
-  // Point Clouds are represented as instances of the FeatureCloud class.
-	std::vector<FeatureCloud> object_templates;
-
-	std::ifstream input_stream (argv[1]);
-	object_templates.resize (0);
-	std::string pcd_filename;
-
-	while (input_stream.good ())
-	{
-		std::getline (input_stream, pcd_filename);
-		if (pcd_filename.empty () || pcd_filename.at (0) == '#') // Skip blank lines or comments
-			continue;
-
-		FeatureCloud template_cloud;
-		template_cloud.loadInputCloud (pcd_filename);
-		object_templates.push_back (template_cloud);
-
-	}
-	input_stream.close ();
-
-  std::cout << "Total number of clouds: " << object_templates.size() << std::endl;
-  if (object_templates.size() < 2)
+  int file_num = 0;
+  if (!dirp)
   {
-    std::cout << "Please specify clouds for registration." << std::endl;
-    return -1;
-  }  
-
-  // Till now, the point clouds should have been loaded and stored as FeatureCloud instances.
-
-  /*
-      Section 2: Preprocessing.
-
-        Filtering, DownSampling, KeyPoint Detection, 
-        Feature and Normal calculation, ...
-  */
-
-	for (size_t i = 0; i != object_templates.size(); ++i)
-	{
-		PointCloud::Ptr cloud_ptr = object_templates[i].getPointCloud();
-		PointCloud::Ptr keyPoints_ptr(new PointCloud);
-
-    filtering(cloud_ptr, cloud_ptr);
-    downSample(cloud_ptr, cloud_ptr, 0.05);
-    narfKeyPoints(cloud_ptr, keyPoints_ptr);
-    object_templates[i].setKeyPoints(keyPoints_ptr);  
-
-    // Compute normals and features such as pfh.
-    computeFeatures(object_templates[i]);
+    std::cout << path_dir << endl;
+    return;
   }
 
-  /*
-    Section 3: Alignment.
+  struct dirent * dp;
+  while ((dp = readdir(dirp)) != NULL) {
+
+    std::string str_d_name(dp->d_name);
     
-    In the first two stages, we already have loaded and calculated the features of the clouds.
-    In this stage, we perform alignment based on these features.
+    if (str_d_name == ".")
+      continue;
+    if (str_d_name == "..")
+      continue;
+    file_num += 1;
+
+    if (*(path_dir.end() - 1) == '/')
+      files.push_back(path_dir + str_d_name);
+    else
+      files.push_back(path_dir + '/' + str_d_name);
+
+  }
+  closedir(dirp);
+
+  std::cout << "total number of frames: " << file_num << std::endl;
+
+  // sort
+  std::sort (files.begin(), files.end(), string_sort);
+
+}
+
+void load_bin(std::string infile, FeatureCloud &cloud)
+{
+  std::cout << "Loading " << infile << std::endl;
+  
+  fstream input(infile.c_str(), ios::in | ios::binary);
+  
+  if(!input.good()){
+    cerr << "Could not read file: " << infile << endl;
+    exit(EXIT_FAILURE);
+  }
+  input.seekg(0, ios::beg);
+
+  /* convertion */
+  PointCloud::Ptr points (new PointCloud);
+
+  for (int j=0; input.good() && !input.eof(); j++) {
+    //PointXYZI point;
+    PointT point;
+
+    input.read((char *) &point.x, 3*sizeof(float));
+    // input.read((char *) &point.intensity, sizeof(float));
+    points->push_back(point);
+  }
+
+  cloud.setInputCloud(points);
+  input.close();
+}
+
+int main(int argc, char **argv)
+{
+	/*
+		Section1: To load a series of Point Clouds.
   */
+  // Point Clouds are represented as instances of the FeatureCloud class.
+	
+  if (argc < 2)
+  {
+    std::cout << "Please specify path to the (sequence) dataset." << std::endl;
+    return -1;
+  }
+
+  const char * out_file;
+  if (argc < 3)
+    out_file = "pose_result.txt";
+  else
+    out_file = argv[2];
+
+  std::vector<std::string> path2bins;
+  std::vector<FeatureCloud> clouds;
+  clouds.resize (0);
+
+  std::string dataset_dir; // path to the dataset directory
+  dataset_dir = argv[1];
+
+  clock_t begin, end;
+  double elapsed_secs;
+
+  listdir(dataset_dir, path2bins); // the path2bins contains frames (.bin) in a sorted order.
+
+  // Load frame 0 (the source).
+  FeatureCloud cloud_;
+  load_bin(path2bins[0], cloud_);
+  std::cout << (*cloud_.getPointCloud()).width << ", " <<  
+  (*cloud_.getPointCloud()).height << std::endl;
+
+  clouds.push_back(cloud_);
+
+  //Compute Features of frame 0
+  PointCloud::Ptr cloud_ptr = clouds[0].getPointCloud();
+  PointCloud::Ptr keyPoints_ptr(new PointCloud);
+
+  filtering(cloud_ptr, cloud_ptr);
+  downSample(cloud_ptr, cloud_ptr, 0.5);
+  narfKeyPoints(cloud_ptr, keyPoints_ptr);
+  clouds[0].setKeyPoints(keyPoints_ptr);
+  // Compute normals and features such as pfh.
+  computeFeatures(clouds[0]);
+
+  //for (int n=1; n < dataset_dir.size(); n++)
+  for (int n=1; n < 10; n++)
+  {
+
+    begin = clock();
+    FeatureCloud cloud_;
+    
+    // Stage1: Load current frame
+    load_bin(path2bins[n], cloud_);   
+    std::cout << (*cloud_.getPointCloud()).width << ", " << \
+    (*cloud_.getPointCloud()).height << std::endl;
+    clouds.push_back(cloud_);
   
+    end = clock();
+    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    std::cout << "Time spent on loading: " << elapsed_secs << std::endl;
 
-  // Method1: SAC-IA based method.
+    // -----------------
+    // Stage2: Preprocess current frame
+    begin = clock();
+    PointCloud::Ptr cloud_ptr = clouds[n].getPointCloud();
+    PointCloud::Ptr keyPoints_ptr(new PointCloud);
 
-  // As a struct, Result stores the transformation matrix and alignment score. 
-  Result* sac_ia_result_ptr, sac_ia_result;
-  sac_ia_result_ptr = &sac_ia_result;
-  
-  sac_ia(object_templates[0], object_templates[1], sac_ia_result_ptr);
+    filtering(cloud_ptr, cloud_ptr);
+    downSample(cloud_ptr, cloud_ptr, 0.5);
+    narfKeyPoints(cloud_ptr, keyPoints_ptr);
+    clouds[n].setKeyPoints(keyPoints_ptr);
+    // Compute normals and features such as pfh.
+    computeFeatures(clouds[n]);
+    end = clock();
+    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    std::cout << "Time spent on preprocessing " << elapsed_secs << std::endl;
 
-  std::cout << "Transformation (SAC-IA): " << std::endl << sac_ia_result.final_transformation << std::endl;
-  std::cout << std::endl << "Score: " << sac_ia_result.fitness_score << std::endl <<std::endl;
+    // SAC-IA method
+    // Result* sac_ia_result_ptr, sac_ia_result;
+    // sac_ia_result_ptr = &sac_ia_result;
+    // sac_ia(clouds[n], clouds[0], sac_ia_result_ptr);
+    // std::cout << "Transformation (SAC-IA): " << std::endl << sac_ia_result.final_transformation << std::endl;
+    // std::cout << std::endl << "Score: " << sac_ia_result.fitness_score << std::endl <<std::endl;
 
-  //Method2: Correspondence Estimation & Rejection.
-  Correspondences all_correspondences;
-  Correspondences inliers;
+    // Stage3: Alignment
+    begin = clock();
 
-  correspondence_estimation(object_templates[0], object_templates[1], \
-    all_correspondences);
+    Correspondences all_correspondences;
+    Correspondences inliers;
+    
+    begin = clock();
+    correspondence_estimation(clouds[n], clouds[0], all_correspondences);
+    end = clock();
+    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    std::cout << "Time spent on Coorespondence Est: " << elapsed_secs << std::endl;
 
-  correspondences_rejection(object_templates[0], object_templates[1], \
-    all_correspondences, inliers);
+    begin = clock();
+    correspondences_rejection(clouds[n], clouds[0], \
+      all_correspondences, inliers);
+    end = clock();
+    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    std::cout << "Time spent on Coorespondence Rej: " << elapsed_secs << std::endl;
 
-  // ICP
-  Result* final_result_ptr, final_result;
-  final_result_ptr = &final_result;
+    // ICP
+    Result* final_result_ptr, final_result;
+    final_result_ptr = &final_result;
+    
+    begin = clock();
+    iterative_closest_points(clouds[n], clouds[0], \
+      final_result_ptr);
+    end = clock();
+    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    std::cout << "Time spent on ICP: " << elapsed_secs << std::endl;
 
-  iterative_closest_points(object_templates[0], object_templates[1], \
-    final_result_ptr);
-  
-  std::cout << "Transformation from ICP: " << std::endl;
-  std::cout << final_result.final_transformation << std::endl;
-  std::cout << "Score: " << final_result.fitness_score << std::endl;
+    // std::cout << "Transformation from ICP: " << std::endl;
+    // std::cout << final_result.final_transformation << std::endl;
+    // std::cout << "Score: " << final_result.fitness_score << std::endl;
 
-	return 0;
+    end = clock();
+    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    std::cout << "Time spent on Corr Est + Rej + ICP: " << elapsed_secs << std::endl;
+
+    ofstream myfile;
+    myfile.open (out_file, fstream::app);
+    std::cout << "writing to " << out_file << std::endl;
+    // write the matrix into the pose file.
+    for(int i = 0; i < 3; i ++)
+    {
+      for(int j = 0; j < 4; j ++)
+      {
+        myfile << ("%lf", final_result.final_transformation(i,j));
+        if (j != 4)
+          myfile << " ";
+      }
+    }
+    myfile << "\n";
+    myfile.close();
+  }
+
+  return 0;
 }
