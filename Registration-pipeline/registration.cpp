@@ -527,8 +527,8 @@ int main(int argc, char **argv)
   // Compute normals and features such as pfh.
   computeFeatures(clouds[0]);
 
-  //for (int n=1; n < dataset_dir.size(); n++)
-  for (int n=1; n < 10; n++)
+  // for (int n=1; n < 10; n++)
+  for (int n=1; n < dataset_dir.size(); n++)
   {
 
     begin = clock();
