@@ -28,9 +28,10 @@ int main(int argc, char **argv)
   std::cout << "icp_outlThresh " << icp_outlThresh << std::endl;
 
   // Path to files where we store the results
-  const char * dataset_dir = $PATH_TO_DATASET;
   const char * out_file2 = argv[8];
   const char * stage_time_file = argv[9];
+  // const char * dataset_dir = $PATH_TO_DATASET;
+  const char * dataset_dir = argv[10];
 
   std::vector<float> single_stage_time;
   std::vector<std::vector<float> > stage_time;
