@@ -29,18 +29,10 @@ int main(int argc, char **argv)
 
   // Path to files where we store the results
   const char * out_file2 = argv[8];
-  const char * stage_time_file = argv[9];
   // const char * dataset_dir = $PATH_TO_DATASET;
-  const char * dataset_dir = argv[10];
-
-  std::vector<float> single_stage_time;
-  std::vector<std::vector<float> > stage_time;
-  stage_time.resize (0);
+  const char * dataset_dir = argv[9];
 
   int index_start = 0;
-  clock_t begin, end;
-  double elapsed_secs;
-
   // Initialize the final result matrix
   Eigen::Matrix4f final_result_kitti = Eigen::Matrix4f::Identity();
 
@@ -72,21 +64,13 @@ int main(int argc, char **argv)
   for (int n=(index_start + 1); n < path2bins.size(); n++)
   {
     // Stage1: Load Point Clouds
-    begin = clock();
     FeatureCloud cloud_;
     load_bin(path2bins[n], cloud_);   
     if (!(n == (index_start + 1)))
       clouds.pop();
     clouds.push(cloud_);
 
-    end = clock();
-    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    std::cout << "T loading: " << elapsed_secs << std::endl;
-    single_stage_time.push_back(elapsed_secs); //0: loading time
-
     // Calculate normals and feature descriptors
-    begin = clock();
-
     PointCloud::Ptr cloud_ptr = (clouds.back()).getPointCloud();
     PointCloud::Ptr keyPoints_cal_ptr(new PointCloud);
     PointCloud::Ptr keyPoints_ptr(new PointCloud);
@@ -102,43 +86,22 @@ int main(int argc, char **argv)
     (clouds.back()).setKeyPoint_indices(indices_);
     computeFeatures(clouds.back(), normal_R, FPFH_R);     // Compute normals and Fpfh
 
-    end = clock();
-    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    std::cout << "T preprocessing " << elapsed_secs << std::endl;
-    single_stage_time.push_back(elapsed_secs); // 1: preprocessing
-
     // Stage3: Coorespondence Estimation
     // (back, front): (source, target)
-    begin = clock();
-
     Correspondences all_correspondences;
     Correspondences inliers;
 
     correspondence_estimation((clouds.back()), (clouds.front()), \
     all_correspondences); // (source, target)
 
-    end = clock();
-    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    std::cout << "T Coorespondence Est: " << elapsed_secs << std::endl;
-    single_stage_time.push_back(elapsed_secs);
-
     // Stage4: Coarse-alignment Correspondence Rejection
-    begin = clock();
-
     Result* init_result_ptr, init_result;
     init_result_ptr = &init_result;
 
     // (source, target) 
     correspondences_rejection((clouds.back()), (clouds.front()), \
       all_correspondences, inliers, init_result_ptr, 1000, ransac_threshold);
-    end = clock();
-    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    std::cout << "T Coorespondence Rej: " << elapsed_secs << std::endl;
-    single_stage_time.push_back(elapsed_secs); // 3: corres rej
-
     // Stage5: Fine-alignment: Iterative Closest Point 
-    begin = clock();
-
     Result* icp_result_ptr, icp_result;
     icp_result_ptr = &icp_result;
     
@@ -146,32 +109,12 @@ int main(int argc, char **argv)
     icp_result_ptr, icp_transEps, icp_corresDist, \
     icp_EuclFitEps, icp_outlThresh);
 
-    end = clock();
-    elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-    std::cout << "T ICP: " << elapsed_secs << std::endl;
-    single_stage_time.push_back(elapsed_secs); // 4: corres icp
-
     // Save results
     Eigen::Matrix4f final_result = icp_result_ptr->final_transformation * \
     init_result_ptr->final_transformation;
     final_result_kitti = final_result_kitti * final_result;
 
-    // save stage time records
-    ofstream timefile;
-    timefile.open (stage_time_file, fstream::app);
-
-    for(int i = 0; i < single_stage_time.size(); i ++)
-    {
-      timefile << ("%lf", single_stage_time[i]);
-      if (i != 4)
-        timefile << " ";
-    }
-    timefile << "\n";
-    timefile.close();
-    single_stage_time.clear();
-
     ofstream myfile_kitti;
-
     myfile_kitti.open (out_file2, fstream::app);
     // Write the matrix into the pose file.
     for(int i = 0; i < 3; i ++)
@@ -183,7 +126,6 @@ int main(int argc, char **argv)
           myfile_kitti << " ";
       }
     }
-
     myfile_kitti << "\n";
     myfile_kitti.close();
 
