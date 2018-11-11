@@ -13,7 +13,7 @@ cmake..
 cd build && make
 ```
 2. Execute: 
-To execute, several parameters need to passed in as arguments:
+To execute, several parameters need to be passed in as arguments:
 ```
 ```
 
