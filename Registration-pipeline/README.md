@@ -1,16 +1,20 @@
 ### Point Cloud Registration
 -------------------------------
-#### Modules
-In the *registration.cpp* is the registration pipeline implementation following the [PCL Registration pipeline](http://pointclouds.org/documentation/tutorials/registration_api.php). The code is unfinished and we are still in the development stage.
+#### Overview
+Use [PCL](http://pointclouds.org/) to perform pairwise registration.
 
 -------------------------------
-#### Log
+### Usage
+To run the pipeline: <br>
+1. Compile:
+```
+mkdir build
+cmake..
+cd build && make
+```
+2. Execute: 
+To execute, several parameters need to passed in as arguments:
+```
+```
 
-- [x] Build a pipeline with *Correspondence Estimation*, *Correspondence Rejection* and *ICP*.
-- [x] Modify interfaces for better scalability.
-- [ ] Test on the **Kitti** dataset and evaluate.
-- [ ] Measure the performance of each stage.
-- [ ] Comment and Documentation.
 -------------------------------
-#### Reference Links
-- 
