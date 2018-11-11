@@ -1,7 +1,14 @@
 ### Point Cloud Registration
+Pairwise registration of point cloud data using PCL. 
+
 -------------------------------
 #### Overview
-Use [PCL](http://pointclouds.org/) to perform pairwise registration.
+
+In the *src* directory are:
+- *registration.cpp*: pairwise registration pipeline (in the main function);
+- *utils.cpp*: implementation of individual modules (e.g. RANSAC, ICP) of the pipeline;
+
+In the *include* directory are function declarations and definitions.
 
 -------------------------------
 ### Usage
