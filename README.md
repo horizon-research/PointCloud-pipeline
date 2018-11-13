@@ -14,7 +14,7 @@ Pipeline: 1. Preprocessing -> 2. Feature Extraction -> 3. Correspondence Estimat
 #### 1. Preprocessing
 In this stage we perform **Downsampling** and **Filtering** on the original Point Cloud.
 #### 2. Feature Extraction
-In this stage, we first **detect Keypoints** and calculate **feature descriptors**. <br>
+In this stage, we first **detect keypoints** and calculate **feature descriptors**. <br>
 Though there are many options out there, currently we are using **NARF** for Keypoint Detection and **FPFH** as Feature Descriptor.
 #### 3. Correspondence Estimation
 To find corresponding point pairs from the **keypoint** sets (not the original point cloud sets).
