@@ -41,10 +41,26 @@ def load_and_transform(filename):
 
 def load_ests(filename):
 	'''
-	Load ICP iteration results. 
+	Load ICP iteration results. (In this file stores the result of each icp iteration, instead of only the final result).  
+		Example:
+		3 * 4 (iter1, frame1-0)
+		3 * 4 (iter2, frame1-0)
+		3 * 4 (iter3, frame1-0)
+		...
+		3 * 4 (iter40, frame1-0)
+		3 * 4 (iter1, frame2-1)
+		3 * 4 (iter2, frame2-1)
+		3 * 4 (iter3, frame2-1)
+		...
+		3 * 4 (iter40, frame2-1)
 
 	Returns:
-		A list of numpy matrix list, each of which stores results for all the iterations
+		A list of numpy matrix list, each stores the matrix results after each iteration for the frame pairs.
+		Example: 
+		[[m1, m2, ... m40],
+		 [m1, m2, ... m40],
+		 ...
+		]
 	'''
 	with open(filename) as f:
 	    poses = f.readlines()
