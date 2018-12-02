@@ -102,9 +102,7 @@ def load_ests(filename):
 	return total_est_matrix
 
 def estimate_error(matrix_list_gt, total_est_matrix, pose_ransac_matrix):
-	''' 
-	Args: 
-		total_est_matrix: icp results
+	'''
 	'''
 	dist = list()
 	dist.append(.0)
@@ -138,14 +136,12 @@ def estimate_error(matrix_list_gt, total_est_matrix, pose_ransac_matrix):
 		''' frames
 		'''
 
-		# i0 == 1: 0 <---- 1 registration result
-		# i0 == n: (n-1) <---- n registration result
-		
+		# i0 == 1: 0 <- 1 registration result
+
 		translational_error_frame = list()
 		rotational_error_frame = list()
 
-		previous_frame_mts = total_est_matrix[i0 - 1]
-		for i, m in enumerate(previous_frame_mts):
+		for i, m in enumerate(frame_mts):
 			# i + 1: iteration number
 			''' 0 - 39 estimtated matrix
 			'''
@@ -154,13 +150,10 @@ def estimate_error(matrix_list_gt, total_est_matrix, pose_ransac_matrix):
 			if i0 > 0:
 
 				pose_delta_gt = np.matmul(matrix_list_gt[i0 - 1].I, matrix_list_gt[i0])
-				pose_delta_est = np.matmul(previous_frame_mts[i], pose_ransac_matrix[i0 - 1])
-				# m: total_est_matrix[i0][i]
-				# pose_delta_est = np.matmul(m, pose_ransac_matrix[i0 - 1])
-							
-				if i == len(previous_frame_mts) - 1:
+				pose_delta_est = np.matmul(total_est_matrix[i0 - 1][i], pose_ransac_matrix[i0 - 1])
+				
+				if i == len(frame_mts) - 1:
 					print("Frame: ", i0 - 1, "<---", i0)
-					print("Iteration Num:", i + 1)
 					print("delta gt\n", pose_delta_gt)
 					print("delta est\n", pose_delta_est)
 					print('\n\n')
@@ -200,6 +193,18 @@ def plot_errors_range(start, end):
 
         fig=plt.figure(figsize=(15,5))
 
+        # trans_err = fig.add_subplot(3,2,1)
+        # rot_err = fig.add_subplot(3,2,2)
+
+        # trans_err.set_title("Translational Error (Absolute)")
+        # rot_err.set_title("Rotational Error (Absolute)")
+
+        # for f_ in [25,75,108,500,700,800,900]:
+        #     trans_err.plot(range(40), translational_error_total[f_], '*-', label='#' + str(f_))
+        #     rot_err.plot(range(40), rotational_error_total[f_], '^-', label='#' + str(f_))
+        # trans_err.legend(loc='upper right')
+        # rot_err.legend(loc='upper right')
+
         trans_err1 = fig.add_subplot(1,2,1)
         rot_err1 = fig.add_subplot(1,2,2)
 
@@ -225,7 +230,7 @@ if __name__ == '__main__':
 	pose_gt_matrix = load_and_transform(fname1)
 
 	# ransac results
-	fransac='./result2/ransac_delta.txt'
+	fransac='./result1/ransac_delta.txt'
 	pose_ransac_matrix = load_and_transform(fransac)
 
 	# icp deltas
@@ -245,33 +250,33 @@ if __name__ == '__main__':
 	trans_err.set_title("Translational Error (Absolute)")
 	rot_err.set_title("Rotational Error (Absolute)")
 
-	for f_ in range(10):
-		trans_err.plot(range(len(translational_error_total[f_])), translational_error_total[f_], '*-', label='#' + str(f_))
-		rot_err.plot(range(len(rotational_error_total[f_])), rotational_error_total[f_], '^-', label='#' + str(f_))
+	for f_ in [25,75,108,500,700,800,900]:
+		trans_err.plot(range(40), translational_error_total[f_], '*-', label='#' + str(f_))
+		rot_err.plot(range(40), rotational_error_total[f_], '^-', label='#' + str(f_))
 	trans_err.legend(loc='upper right')
 	rot_err.legend(loc='upper right')
 
-	# trans_err1 = fig.add_subplot(3,2,3)
-	# rot_err1 = fig.add_subplot(3,2,4)
+	trans_err1 = fig.add_subplot(3,2,3)
+	rot_err1 = fig.add_subplot(3,2,4)
 
-	# trans_err1.set_title("Translational Error (Absolute)")
-	# rot_err1.set_title("Rotational Error (Absolute)")
-	# for i in [1780,1781,1782,1783,1784]:
-	# 	trans_err1.plot(range(len(translational_error_total[i])), translational_error_total[i], '*-', label='#' + str(i))
-	# 	rot_err1.plot(range(len(rotational_error_total[i])), rotational_error_total[i], '^-', label='#' + str(i))
-	# trans_err1.legend(loc='upper right')
-	# rot_err1.legend(loc='upper right')
+	trans_err1.set_title("Translational Error (Absolute)")
+	rot_err1.set_title("Rotational Error (Absolute)")
+	for i in [1780,1781,1782,1783,1784]:
+		trans_err1.plot(range(40), translational_error_total[i], '*-', label='#' + str(i))
+		rot_err1.plot(range(40), rotational_error_total[i], '^-', label='#' + str(i))
+	trans_err1.legend(loc='upper right')
+	rot_err1.legend(loc='upper right')
 
 
-	# trans_err2 = fig.add_subplot(3,2,5)
-	# rot_err2 = fig.add_subplot(3,2,6)
+	trans_err2 = fig.add_subplot(3,2,5)
+	rot_err2 = fig.add_subplot(3,2,6)
 
-	# trans_err2.set_title("Translational Error (Absolute)")
-	# rot_err2.set_title("Rotational Error (Absolute)")
-	# for i in range(5):
-	# 	trans_err2.plot(range(len(translational_error_total[i + 1795])), translational_error_total[i + 1795], '*-', label='#' + str(i + 1795))
-	# 	rot_err2.plot(range(len(rotational_error_total[i + 1795])), rotational_error_total[i + 1795], '^-', label='#' + str(i + 1795))
-	# trans_err2.legend(loc='upper right')
-	# rot_err2.legend(loc='upper right')
+	trans_err2.set_title("Translational Error (Absolute)")
+	rot_err2.set_title("Rotational Error (Absolute)")
+	for i in range(5):
+		trans_err2.plot(range(40), translational_error_total[i + 1795], '*-', label='#' + str(i + 1795))
+		rot_err2.plot(range(40), rotational_error_total[i + 1795], '^-', label='#' + str(i + 1795))
+	trans_err2.legend(loc='upper right')
+	rot_err2.legend(loc='upper right')
 
 	plt.show()
