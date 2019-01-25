@@ -40,3 +40,6 @@ For the registration task:
 - The implementation is based on [PCL](http://www.pointclouds.org/) and [FLANN](https://github.com/mariusmuja/flann).
 
 ---------------
+## Preparation
+To-do:
+- [ ] Instruction on installing (build and compile from source) [PCL](http://www.pointclouds.org/) and [FLANN](https://github.com/mariusmuja/flann) in the user space on a Linux system.
