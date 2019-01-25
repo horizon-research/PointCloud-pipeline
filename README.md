@@ -12,11 +12,12 @@ Pipeline:
 2. Normal Estimation ->
 3. Keypoint Selection ->
 4. Feature Descriptor Calculation -> 
-5. Correspondence Estimation among keypoints -> \
+5. Correspondence Estimation among keypoints -> 
 6. Correspondence Rejection (Ransac) -> 
 7. Iterative Closest Point 
 ```
-In the pipeline, the first 6 stages together could be viewed as a **coarse estimation** process, which generates a initial estimation result (usually rough) at the end of the *Correspondence Rejection* stage. Then, the last stage, which could be considered as a **fine estimation** process, calculates the final result in an iterative fashion given the initial estimation.
+In the pipeline, the first 6 stages together could be viewed as a **coarse estimation** process, which generates an initial estimation result (usually rough) at the end of the *Correspondence Rejection* stage. 
+Then, the last stage, which could be considered as a **fine estimation** process, calculates the final result in an iterative fashion given the initial estimation.
 
 Our implementation is designed to be flexible, in a way that each individual stage is re-configurable. For example, in the *feature descriptor calculation* stage, one could choose different descriptors such as FPFH and SHOT by given a specification parameter.
 
