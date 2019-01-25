@@ -18,26 +18,19 @@ Pipeline:
 ```
 In the pipeline, the first 6 stages together could be viewed as a **coarse estimation** process, which generates a initial estimation result (usually rough) at the end of the *Correspondence Rejection* stage. Then, the last stage, which could be considered as a **fine estimation** process, calculates the final result in an iterative fashion given the initial estimation.
 
-The following section briefly lists various options for each stage in our pipeline.
-#### 1. Preprocessing
-#### 2. Normal Estimation
-Paramter: raidus (radius search for neighboring search) / (kNN search for neighboring search).
-#### 3. Keypoint Selection
-Configurations / Modules: **NARF**, **SIFT**, **HARRIS**.
+Our implementation is designed to be flexible, in a way that each individual stage is re-configurable. For example, in the *feature descriptor calculation* stage, one could choose different descriptors such as FPFH and SHOT by given a specification parameter.
 
-#### 4. Feature Descriptor Calculation
-Configurations / Modules: **SHOT**, **FPFH**, **VFH**, **PFH** and **3DSC**.
-Paramter: raidus (radius search for neighboring search) / (kNN search for neighboring search).
+The following section briefly lists various kernel and paramter options for each stage in our pipeline.
 
-#### 5. Correspondence Estimation
-Paramter: whether to adopt reciprocal estimation or not.
-
-#### 6. Correspondence Rejection
-Paramter: rejection threshold.
-
-#### 7. Iterative Closest Point
-Configurations / Modules: **SVD**, **Non-Linear** for the solver.
-Paramter: convergence criteria.
+| Stages   |      Kernels      |  Parameters |
+|:--------:|:-----------------:|:-----------:|
+| Preprocessing | x | x |
+| Normal Estimation | x |  radius / K |
+| Keypoint Selection | **NARF**, **SIFT**, **HARRIS** | x |
+| Feature Descriptor Calculation | **SHOT**, **FPFH**, **3DSC** | radius / K |
+| Correspondence Estimation | x | whether to estimate reciprocally or not |
+| Correspondence Rejection | x | rejection threshold |
+| Iterative Closest Point | **SVD**, **Non-Linear** | convergence criteria |
 
 ---------------
 For the registration task: 
