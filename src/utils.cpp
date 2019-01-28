@@ -374,7 +374,7 @@ void load_bin(std::string infile, FeatureCloud &cloud)
     std::cout << std::endl;
 	std::cout << "Loading " << infile << std::endl;
 
-	std::fstream input(infile.c_str(), ios::in | ios::binary);
+	std::fstream input(infile.c_str(), std::ios::in | std::ios::binary);
 
 	if(!input.good()){
 		std::cerr << "Could not read file: " << infile << std::endl;
@@ -390,7 +390,7 @@ void load_bin(std::string infile, FeatureCloud &cloud)
 		PointT point, point_gt;
 
 		input.read((char *) &point.x, 3*sizeof(float));
-		input.seekg(sizeof(float), ios::cur);    
+		input.seekg(sizeof(float), std::ios::cur);    
 
 		/* coordinate system trans*/
 		point_gt.x = -point.y;
