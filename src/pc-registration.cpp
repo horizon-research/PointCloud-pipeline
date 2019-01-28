@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 	std::vector<float> stage_kdtree_time;
 
 	struct timespec start, finish;
-	double elapsed;
+	double elapsed_secs;
 
 	float nn_time, bd_time;
 	nn_time = 0.0;
@@ -103,8 +103,8 @@ int main(int argc, char **argv)
 	// Feature Descriptor Calculation
 	describeFeatures(kernel_descriptors, clouds.front(), descriptor_R, nn_time, bd_time);
 
-	ofstream myfile_kitti;
-	myfile_kitti.open (out_file2, fstream::app);
+	std::ofstream myfile_kitti;
+	myfile_kitti.open (out_file2, std::fstream::app);
 	std::cout << "writing to " << out_file2 << std::endl;
 
 	// write the matrix into the pose file.
@@ -304,8 +304,8 @@ int main(int argc, char **argv)
 		final_result_kitti = final_result_kitti * final_result;
 
 		// save stage time records
-		ofstream timefile;
-		timefile.open (stage_time_file, fstream::app);
+		std::ofstream timefile;
+		timefile.open (stage_time_file, std::fstream::app);
 
 		for(int i = 0; i < single_stage_time.size(); i ++)
 		{
@@ -318,8 +318,8 @@ int main(int argc, char **argv)
 		single_stage_time.clear();
 
 		// kdtree time (stages)
-		ofstream kdtree_time;
-		kdtree_time.open(kdtree_time_file, fstream::app);
+		std::ofstream kdtree_time;
+		kdtree_time.open(kdtree_time_file, std::fstream::app);
 		for(int i = 0; i < stage_kdtree_time.size(); i ++)
 		{
 			kdtree_time << ("%lf", stage_kdtree_time[i]);
@@ -357,8 +357,8 @@ int main(int argc, char **argv)
 		std::cout << std::endl;
 
 		/* ransac delta */
-		ofstream myfile_ransac;
-		myfile_ransac.open (ransac_delta_file, fstream::app);
+		std::ofstream myfile_ransac;
+		myfile_ransac.open (ransac_delta_file, std::fstream::app);
 
 		std::cout << "writing to " << ransac_delta_file << std::endl;
 
@@ -375,8 +375,8 @@ int main(int argc, char **argv)
 		myfile_ransac.close();
 
 		/* ransac delta */
-		ofstream myfile_icp;
-		myfile_icp.open (icp_delta_file, fstream::app);
+		std::ofstream myfile_icp;
+		myfile_icp.open (icp_delta_file, std::fstream::app);
 		std::cout << "writing to " << icp_delta_file << std::endl;
 
 		for(int i = 0; i < 3; i ++)
@@ -393,8 +393,8 @@ int main(int argc, char **argv)
 
 
 		/* Accumulated result*/
-		ofstream myfile_kitti;
-		myfile_kitti.open (out_file2, fstream::app);
+		std::ofstream myfile_kitti;
+		myfile_kitti.open (out_file2, std::fstream::app);
 		std::cout << "writing to " << out_file2 << std::endl;
 
 		// write the matrix into the pose file.
