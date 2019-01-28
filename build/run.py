@@ -1,7 +1,7 @@
 #!/home/nile/anaconda3/bin/python
 import os
 
-program = "./build/pc-registration"
+program = "./pc-registration"
 
 use_keypoint = str(0)
 
@@ -30,13 +30,13 @@ icp_flag_reciprocal= str("True")
 
 ### mkdir 
 max_dir_num=0
-for i in os.listdir("./"):
+for i in os.listdir("../"):
 	# print(i)
 	if "result" in i:
 		if max_dir_num < int(i[6:]):
 			max_dir_num = int(i[6:])
 result_dir_num = max_dir_num + 1
-result_dir = "./result" + str(result_dir_num) + "/"
+result_dir = "../result" + str(result_dir_num) + "/"
 
 # mkdir && create files
 if not os.path.exists(result_dir):
