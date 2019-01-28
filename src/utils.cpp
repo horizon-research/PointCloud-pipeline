@@ -11,8 +11,8 @@ void filter(const PointCloud::Ptr cloud_src, \
     sor.setStddevMulThresh(1.0);
     sor.filter(*filtered);
 
-    sor.getNnTime(nn_time);
-    sor.getBuildTime(bd_time);
+    // sor.getNnTime(nn_time);
+    // sor.getBuildTime(bd_time);
     // std::cout << "Outlier Filtering:" << std::endl;
     // std::cout << (num - filtered->size()) << " Points Are Filtered: " \
     // << num << "->" << filtered->size() << std::endl << std::endl;
@@ -423,8 +423,8 @@ void computeSurfaceNormals (FeatureCloud &cloud, float R, \
     // norm_est.setKSearch(35);
     // norm_est.setKSearch(K);
     norm_est.compute (*normals_);
-    norm_est.getNnTime(nn_time);
-    norm_est.getBuildTime(bd_time);
+    // norm_est.getNnTime(nn_time);
+    // norm_est.getBuildTime(bd_time);
 
     cloud.setSurfaceNormals(normals_);
     // std::cout << "Normals:" << *normals_ << std::endl;
@@ -447,8 +447,8 @@ void computeFeatures_FPFH (FeatureCloud &cloud, float R, float &nn_time, float &
 
     fpfh_est.compute (*fpfh_features_);
 
-    fpfh_est.getNnTime(nn_time);
-    fpfh_est.getBuildTime(bd_time);
+    // fpfh_est.getNnTime(nn_time);
+    // fpfh_est.getBuildTime(bd_time);
 
     removeNANFromFPFH(fpfh_features_, nanremoved_, cloud);
 
@@ -521,8 +521,8 @@ void computeFeatures_3DSC (FeatureCloud &cloud, float R, float &nn_time, float &
 
 	threedsc_est.compute(*threedsc_features_);
 
-    threedsc_est.getNnTime(nn_time);
-    threedsc_est.getBuildTime(bd_time);
+    	// threedsc_est.getNnTime(nn_time);
+    	// threedsc_est.getBuildTime(bd_time);
 
     removeNANFromDescriptor<threeDSC_Features::Ptr>(threedsc_features_, nanremoved_, cloud);
 
@@ -576,8 +576,8 @@ void computeFeatures_SHOT (FeatureCloud &cloud, float R, float &nn_time, float &
 
 	shot_est.compute(*shot_features_);
 
-    shot_est.getNnTime(nn_time);
-    shot_est.getBuildTime(bd_time);
+    	// shot_est.getNnTime(nn_time);
+    	// shot_est.getBuildTime(bd_time);
 
 	//removeNANFromSHOT(shot_features_, nanremoved_, cloud);
 
@@ -707,8 +707,8 @@ void correspondence_estimation(std::string kernel_descriptors, std::string flag_
         est.setInputTarget (target_cloud.getFeatures_FPFH());
 		if(flag_reciprocal == "True")
 			est.determineReciprocalCorrespondences (all_corres);
-        est.getBuildTime(bd_time);
-        est.getNnTime(nn_time);
+        	// est.getBuildTime(bd_time);
+        	// est.getNnTime(nn_time);
 	}
 	if (kernel_descriptors == "VFH")
 	{
@@ -717,8 +717,8 @@ void correspondence_estimation(std::string kernel_descriptors, std::string flag_
 		est.setInputTarget (target_cloud.getFeatures_VFH());
 		if(flag_reciprocal == "True")
 			est.determineReciprocalCorrespondences (all_corres);
-        est.getBuildTime(bd_time);
-        est.getNnTime(nn_time);
+       		// est.getBuildTime(bd_time);
+        	// est.getNnTime(nn_time);
 	}
 /*	if (kernel_descriptors == "SpinImage")
 	{
@@ -735,8 +735,8 @@ void correspondence_estimation(std::string kernel_descriptors, std::string flag_
 		est.setInputTarget (target_cloud.getFeatures_3DSC());
 		if(flag_reciprocal == "True")
 			est.determineReciprocalCorrespondences (all_corres);
-        est.getBuildTime(bd_time);
-        est.getNnTime(nn_time);
+        	// est.getBuildTime(bd_time);
+        	// est.getNnTime(nn_time);
 	}
 	// if (kernel_descriptors == "USC")
 	// {
@@ -755,8 +755,8 @@ void correspondence_estimation(std::string kernel_descriptors, std::string flag_
 		if(flag_reciprocal == "True")
 			est.determineReciprocalCorrespondences (all_corres);
 	
-        est.getBuildTime(bd_time);
-        est.getNnTime(nn_time);
+        	// est.getBuildTime(bd_time);
+        	// est.getNnTime(nn_time);
     }
 	// if (kernel_descriptors == "RSD")
 	// {
@@ -860,8 +860,8 @@ void iterative_closest_points(std::string solver, std::string flag_reciprocal, \
     	result->final_transformation = icp.getFinalTransformation();
     	result->fitness_score = icp.getFitnessScore();
 
-        icp.getNnTime_icp(nn_time);
-        icp.getBuildTime_icp(bd_time);
+        // icp.getNnTime_icp(nn_time);
+        // icp.getBuildTime_icp(bd_time);
 
     }
     if (solver == "LM")
@@ -891,8 +891,8 @@ void iterative_closest_points(std::string solver, std::string flag_reciprocal, \
         result->final_transformation = icp_lm.getFinalTransformation();
         result->fitness_score = icp_lm.getFitnessScore();
 
-        icp_lm.getNnTime_icp(nn_time);
-        icp_lm.getBuildTime_icp(bd_time);
+        // icp_lm.getNnTime_icp(nn_time);
+        // icp_lm.getBuildTime_icp(bd_time);
 
     }
 }
