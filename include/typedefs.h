@@ -27,7 +27,7 @@
 #include <pcl/filters/statistical_outlier_removal.h>
 
 // key points
-#include <pcl/visualization/range_image_visualizer.h>
+// #include <pcl/visualization/range_image_visualizer.h>
 #include <pcl/range_image/range_image.h>
 #include <pcl/keypoints/narf_keypoint.h>
 #include <pcl/features/range_image_border_extractor.h>
@@ -67,8 +67,8 @@
 #include <pcl/registration/transformation_estimation_svd.h>
 
 //visualizer
-#include <pcl/visualization/cloud_viewer.h>
-#define pause printf("Press Enter key to continue..."); fgetc(stdin);
+// #include <pcl/visualization/cloud_viewer.h>
+// #define pause printf("Press Enter key to continue..."); fgetc(stdin);
 
 typedef pcl::PointXYZ PointT;
 typedef pcl::PointCloud<PointT> PointCloud;

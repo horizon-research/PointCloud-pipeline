@@ -56,11 +56,13 @@ bool string_sort (std::string i,std::string j);
 void listdir(std::string path_dir, std::vector<std::string> &files);
 void load_bin(std::string infile, FeatureCloud &cloud);
 
+/*
 boost::shared_ptr<pcl::visualization::PCLVisualizer> 
 visualize_correspondences (const PointCloudPtr points1, const PointCloudPtr keypoints1,
                            const PointCloudPtr points2, const PointCloudPtr keypoints2,
                            Correspondences &correspondences);
 }
+*/
 
 template <class Feature_Descriptor>
 void removeNANFromDescriptor(Feature_Descriptor& feature_descriptor, Feature_Descriptor& nanremoved, FeatureCloud &cloud)
