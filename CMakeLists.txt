@@ -12,4 +12,4 @@ add_definitions(${PCL_DEFINITIONS} -O3 -DNDEBUG -DPCL_NO_PRECOMPILE)
 add_executable (pc-registration src/utils.cpp src/pc-registration.cpp)
 target_link_libraries (pc-registration ${PCL_LIBRARIES})
 
-set_property(TARGET reg-keypoints PROPERTY CXX_STANDARD 11)
+set_property(TARGET pc-registration PROPERTY CXX_STANDARD 11)
