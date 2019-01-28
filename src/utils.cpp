@@ -342,7 +342,7 @@ void listdir(std::string path_dir, std::vector<std::string> &files)
 	int file_num = 0;
 	if (!dirp)
 	{
-		std::cout << path_dir << endl;
+		std::cout << path_dir << std::endl;
 		return;
 	}
 
@@ -374,13 +374,13 @@ void load_bin(std::string infile, FeatureCloud &cloud)
     std::cout << std::endl;
 	std::cout << "Loading " << infile << std::endl;
 
-	fstream input(infile.c_str(), ios::in | ios::binary);
+	std::fstream input(infile.c_str(), ios::in | ios::binary);
 
 	if(!input.good()){
-		cerr << "Could not read file: " << infile << endl;
+		std::cerr << "Could not read file: " << infile << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	input.seekg(0, ios::beg);
+	input.seekg(0, std::ios::beg);
 
 	/* convertion */
 	PointCloud::Ptr points (new PointCloud);
