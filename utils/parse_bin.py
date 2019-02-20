@@ -1,15 +1,16 @@
 import struct
+import os
 
-def parse_bin(dataset):
+def parse_bin(data):
 	'''
 		Args:
-			- dataset: path to the Kitti binary file
+			- data: path to the Kitti binary file
 		Returns: 
 			- a list in which each element is a list containing
 			the coordinates of one point
 	'''
 	points = list()
-	with open(dataset, "rb") as f:
+	with open(data, "rb") as f:
 		byte_ = f.read(4 * 4)
 		x0, y0, z0, i_ = struct.unpack('4f', byte_)
 		
@@ -33,13 +34,29 @@ def parse_bin(dataset):
 
 if __name__ == '__main__':
 	
-	dataset = "./sample/000000.bin"
-	dst = "000000.txt"
-	points = parse_bin(dataset)
+	# dataset = "./sample/000000.bin"
+	# dst = "000000.txt"
+	
+	for j in range(10):
+	    i = j + 1
+	    seq_id = "%02d" % i   
+	    dataset = "/localdisk/pointCloud_bin/Dataset/sequences/" + seq_id + "/velodyne/"
+	    all_bins =[b for b in os.listdir(dataset) if ".bin" in b]
+	    print(len(all_bins))
+	   
+	    dst_dir = "/localdisk/pointCloud_txt/Dataset/sequences/" + seq_id + "/velodyne/"
+	    if not os.path.exists(dst_dir):
+		os.makedirs(dst_dir)            
 
-	with open(dst, 'w') as f:
-		for p_ in points:
+	    for bin_ in all_bins[:]:
+	        src_ = dataset + bin_
+		points = parse_bin(src_)
+		dst_ = dst_dir + bin_.split(".")[0] + ".txt"
+ 		# print(dst_)
+		# print(points)
+		
+		with open(dst_, 'w') as f:
+		    for p_ in points:
 			f.write("%s," % p_[0])
 			f.write("%s," % p_[1])
-			f.write("%s\n" % p_[2])
-			
+			f.write("%s\n" % p_[2])	
