@@ -1,45 +1,96 @@
-# PointCloud-pipeline
-Pipelines for a range of Point Cloud processing tasks (currently our focus is on the fundamental registration task).
+Point Cloud Registration Pipeline 
+=================
 
----------------
-## Registration
-We adopt the standard pair-wise registration pipeline [registration pipeline](http://pointclouds.org/documentation/tutorials/registration_api.php) to perform pairwise point cloud registration:
-```
-Input: One pair of Point Cloud Frames
-Output: Transformation Matrix
-Pipeline: 
-1. Preprocessing: filetering and downsampling -> 
-2. Normal Estimation ->
-3. Keypoint Selection ->
-4. Feature Descriptor Calculation -> 
-5. Correspondence Estimation among keypoints -> 
-6. Correspondence Rejection (Ransac) -> 
-7. Iterative Closest Point 
-```
-In the pipeline, the first 6 stages together could be viewed as a **coarse estimation** process, which generates an initial estimation result (usually rough) at the end of the *Correspondence Rejection* stage. 
-Then, the last stage, which could be considered as a **fine estimation** process, calculates the final result in an iterative fashion given the initial estimation.
+A general and flexible Point Cloud Registration pipeline built with Point Cloud Library ([PCL](http://pointclouds.org/)).<br> 
+This pipeline is excellent for (but not limited to) the development and test of point-cloud based registration algorithms as it is highly reconfigurable: the components of the pipeline could be reconfigured with different PCL kernels, or even your own implementations! 
 
-Our implementation is designed to be flexible, in a way that each individual stage is re-configurable. For example, in the *feature descriptor calculation* stage, one could choose different descriptors such as FPFH and SHOT by given a specification parameter.
+Pipeline Overview
+------------------
+[Registration](https://en.wikipedia.org/wiki/Point_set_registration) is a key building block in virtually all point cloud-based applications. It is a process that finds the transformation matrix that aligns two point cloud frames to form a globally consistent point cloud. 
 
-The following section briefly lists various kernel and paramter options for each stage in our pipeline.
+![image](https://user-images.githubusercontent.com/19209239/62985785-c70b5280-be06-11e9-89c8-0cf9a698dd5a.png)
+As shown in the figure above, our pipeline adopts a common two-phase design consisting of an initial estimation phase and a fine-tuning phase. The first phase performs an initial estimation of the transformation matrix, which is then fine-tuned in the second phase until the convergence.
 
-| Stages   |      Kernels      |  Parameters |
-|:--------:|:-----------------:|:-----------:|
-| Preprocessing | x | x |
-| Normal Estimation | x |  radius / K |
-| Keypoint Selection | **NARF**, **SIFT**, **HARRIS** | x |
-| Feature Descriptor Calculation | **SHOT**, **FPFH**, **3DSC** | radius / K |
-| Correspondence Estimation | x | whether to estimate reciprocally or not |
-| Correspondence Rejection | x | rejection threshold |
-| Iterative Closest Point | **SVD**, **Non-Linear** | convergence criteria |
+Get Started (Before Running)
+------------------
+0. **Prequisites**:<br>
+Make sure to [install PCL](http://pointclouds.org/documentation/tutorials/compiling_pcl_posix.php) and its [dependencies](http://pointclouds.org/documentation/tutorials/compiling_pcl_posix.php#dependencies) correctly (the visualization module is not needed here). [PCL 1.9.0](https://github.com/PointCloudLibrary/pcl/releases/tag/pcl-1.9.0) is preferred (we will use the shared objects only). 
 
----------------
-For the registration task: 
-- We have been testing our implementation with the [Kitti Odometry Dataset](http://www.cvlibs.net/datasets/kitti/eval_odometry.php);
-- It has been demonstrated that the estimation results could vary largely depending on the parameter setting of different modules in the pipeline, e.g., the radius or K for nearest neighbor search in the Normal Estimation stage.
-- The implementation is based on [PCL](http://www.pointclouds.org/) and [FLANN](https://github.com/mariusmuja/flann).
+1. **Project Settings**:<br> 
+Three **IMPORTANT** specifications need to be made in the **CMakeLists.txt** in order to build the project successfully.<br>
+	
+	**A). set the path to **PCLConfig.cmake** correctly** <br>
+	In the third line of the default CMakeLists.txt, set the path to **PCLConfig.cmake** correctly: <br>
+	```set(PCL_DIR $PATH_TO_CONFIG_FILE)``` <br>
+	
+	Below is an example on my machine: the path to the **PCLConfig.cmake** file is ```/u/txu17/local/pcl-1.9.0/share/pcl-1.9``` (benefits of installing PCL under user space: more control of where and what to build, no need for sudo access).<br>
+	<img src="https://user-images.githubusercontent.com/19209239/62990401-da73e900-be19-11e9-86e0-79c43455a790.png" width=80% height=80%>
 
----------------
-## Preparation
-To-do:
-- [ ] Instruction on installing (build and compile from source) [PCL](http://www.pointclouds.org/) and [FLANN](https://github.com/mariusmuja/flann) in the user space on a Linux system.
+	So in the CMakeLists.txt file, PCL_DIR is set to that path:
+	<img src="https://user-images.githubusercontent.com/19209239/62990407-e19af700-be19-11e9-9174-c142db9e35db.png" width=80% height=80%> <br>
+	(CMake has default paths to find PCLConfig.cmake, but they are not necessarily where PCLConfig.cmake is on your machine)). <br>
+	
+	**B). set the **PCL version** correctly** <br>
+	Set the PCL version in the ```find_package``` line.
+	
+	**C). set the included headers correctly** <br>
+	In the ```include_directories("./pcl-1.7;$PATH_TO_EIGEN;" include)``` line, please make sure ```./pcl-1.7``` is always there, and change ```$PATH_TO_EIGEN``` to the path to EIGEN. Example when EIGEN is installed at ```/usr/include/eigen3```: 
+	<img src="https://user-images.githubusercontent.com/19209239/62991625-3ccee880-be1e-11e9-81ee-0636337b067e.png" width=80% height=80%>
+	
+2. **Dataset**: <br>
+Two functions, i.e., ```load_txt``` and ```load_bin```, are provided to load point cloud data (the implementations are in ```src/utils.cpp```): <br>
+    ```load_txt``` is designed to load points in text files. An input file is considered to be a point cloud frame, in which each line should contain the coordinates of a point, formatted as: ```x_coord,y_corrd,z_corrd```. Example below: <br>
+    <img src="https://user-images.githubusercontent.com/19209239/63061628-c5539480-bec3-11e9-830c-0eb2d0e50b02.png" width=80% height=80%>
+    
+    ```load_bin``` is designed specifically for KITTI binary data. It also does the coordinate system transformation. <br>
+
+    Depending on the format of the input data, you could modify ```src/pc_pipeline.cpp``` to switch between these two functions.
+
+3. **Pipeline configuration**:<br>
+There are several ways to configure the registration pipeline, i.e., choosing kernels and specifying algorithm parameters of different stages: <br>
+
+	**a). To use the configuration file** <br>
+	By default, the configuration file is named **'config.txt'** (in the **bin** directory). It specifies kernel parameters as well as some paths in the format of: ```$KEY: $VALUE```. For example, this line in the configuration file:<br> ```Normal_Search_Radius: 0.75``` <br> sets the parameter **Search Radius** in the **Normal Estimation** stage to 0.75. <br><br>
+	Below is a complete list of parameters that could be set by the configuration file (which could be extended!): <br>
+	
+	|  Parameter Name |  Stage   |  Meaning  |     Values   |
+	|:---------------:|:--------:|:---------:|:------------:|
+	| Normal_Search_Radius | Normal Estimation | Search radius | A floating point, e.g., 0.75 | 
+	| Normal_Use_Customized_KDTree | Normal Estimation | Use customized KD Tree or not | {true, false} |
+	| Normal_Max_Leaf_Size | Normal Estimation | Max leaf size for customized KD-Tree | An integer number, e.g., 32|	
+	| Key_Point_Detection_Module | Key-point Detection | Detection algorithm | {NARF, SIFT, HARRIS} | 
+	| Feature_Search_Radius | Descriptor Calculation | Search radius | A floating point, e.g., 0.85 | 
+	| Feature_Module | Descriptor Calculation | Feature descriptor type | {SHOT, FPFH} | 
+	| Corr_Est_Use_Reciprocal_Search | Key-Point Correspondence Estimation | To do reciprocal search or not | {true, false} | 
+	| Ransac_Threshold | Correspondence Rejection | Distance threshold | A floating point, e.g., 0.20 | 
+	| Ransac_Max_Iteration | Correspondence Rejection | Maximum iteration number | An integer, e.g., 10000| 
+	| ICP_Solver | Fine-Tuning (ICP) | Solver type | {SVD, LM} | 
+	| ICP_Max_Iteration | Fine-Tuning (ICP) | Maximum iteration number | An integer, e.g., 15 | 
+	| ICP_Use_Ransac | Fine-Tuning (ICP) | To do rejection in each iteration or not | {true, false} | 
+	| ICP_Use_Reciprocal_Search | Fine-Tuning (ICP) | To do reciprocal search in each iteration or not | {true, false} |
+	| ICP_Transformation_Epsilon | Fine-Tuning (ICP) | Transformation matrix epsilon  | A floating point, e.g., 1e-9 |
+	| ICP_Max_Correspondence_Distance | Fine-Tuning (ICP) | Correspondences with higher distances will be ignored | A floating point, e.g., 1.20|
+	| ICP_Euclidean_Fitness_Epsilon | Fine-Tuning (ICP) | Euclidean distance difference epsilon | A floating point, e.g., 1e-6 |
+	| ICP_Ransac_Outlier_Rejection_Threshold | Fine-Tuning (ICP) |  | An integer number, e.g., 120 |
+	| ICP_Use_Customized_KDTree | Fine-Tuning (ICP) | Use customized KD-Tree or not | {true, false} |
+	| ICP_Max_Leaf_Size | Fine-Tuning (ICP) | Max leaf size for customized KD-Tree | An integer number, e.g., 32 |
+	| Approx_Radius_Search_Para | Normal Estimation | Threshold for approximated radius search | A floating point under 1.0, e.g., 0.20 |
+	| Approx_Nearest_Search_Para | Fine-Tuning (ICP) | Threshold for approximated nearest search | A floating point, e.g., 1.20 |	
+	| Save_Approx_Data | Normal Estimation / Fine-Tuning (ICP) | Record data for approximation search or not| {true, false} |	
+
+
+	**b). To modify the source code**
+	- [ ] change to different PCL kernels: ICP example.
+	- [ ] add implementations.
+
+Build & Run
+------------
+1. Switch to the project directory (where the Makefile is) if you are not, and ```make```. By default, if everything set correctly, it will build the project and generate the executable in the **bin** directory.
+2. Enter the **bin** directory, and set the **config.txt**. Especially, please set the path to dataset correctly as the example below (suppose the data is at ```/data/pointCloud/```):
+	<img src="https://user-images.githubusercontent.com/19209239/63047716-fbcce780-bea2-11e9-9702-fa8c6ff199fc.png" width=80% height=80%>
+	
+3. Make sure the configurations are all set, then execute ```./pc_pipeline``` (default name). Hopefully the output will be similar to what's shown below: <br>
+	<img src="https://user-images.githubusercontent.com/19209239/62992636-32165280-be22-11e9-89fc-37230272b133.png" width=80% height=80%>
+  
+Acknowledgement
+------------------
