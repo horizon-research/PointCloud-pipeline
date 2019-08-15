@@ -38,11 +38,11 @@ Three **IMPORTANT** specifications need to be made in the **CMakeLists.txt** in 
 	<img src="https://user-images.githubusercontent.com/19209239/62991625-3ccee880-be1e-11e9-81ee-0636337b067e.png" width=80% height=80%>
 	
 2. **Dataset**: <br>
-Two functions, i.e., ```load_txt``` and ```load_bin```, are provided to load point cloud data (the implementations are in ```src/utils.cpp```): <br>
-    ```load_txt``` is designed to load points in text files. An input file is considered to be a point cloud frame, in which each line should contain the coordinates of a point, formatted as: ```x_coord,y_corrd,z_corrd```. Example below: <br>
+Two functions, i.e., ```loadTXTFile``` and ```loadBINFile```, are provided to load point cloud data (the implementations are in ```src/utils.cpp```): <br>
+    ```loadTXTFile``` is designed to load points in text files. An input file is considered to be a point cloud frame, in which each line should contain the coordinates of a point, formatted as: ```x_coord,y_corrd,z_corrd```. Example below: <br>
     <img src="https://user-images.githubusercontent.com/19209239/63061628-c5539480-bec3-11e9-830c-0eb2d0e50b02.png" width=80% height=80%>
     
-    ```load_bin``` is designed specifically for KITTI binary data. It also does the coordinate system transformation. <br>
+    ```loadBINFile``` is designed specifically for KITTI binary data. It also does the coordinate system transformation. <br>
 
     Depending on the format of the input data, you could modify ```src/pc_pipeline.cpp``` to switch between these two functions.
 
