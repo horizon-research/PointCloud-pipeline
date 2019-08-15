@@ -1,15 +1,11 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
-set(PCL_DIR "/usr/local/share/pcl-1.8")
-#find_package(PCL 1.9 REQUIRED HINTS "~/local/")
-find_package(PCL 1.7 REQUIRED PATHS "./" NO_DEFAULT_PATH)
-# find_package(PCL 1.7 REQUIRED PATHS "./")
-list(REMOVE_ITEM PCL_LIBRARIES "vtkproj4")
+set(PCL_DIR "$PATH_TO_PCLCONFIG")
+# $PATH_TO_PCLCONFIG: path to PCLConfig.cmake
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -DNDEBUG")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -DNDEBUG -fopenmp")
-
-message("\nPCL include: \n${PCL_INCLUDE_DIRS}\n")
-include_directories("./pcl-1.7;/usr/include/eigen3;~/local/flann/include;" include)
+include_directories("./pcl-1.7;$PATH_TO_EIGEN" include)
+# $PATH_TO_EIGEN: path to EIGEN
 
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS} -O3 -DNDEBUG -DPCL_NO_PRECOMPILE)
