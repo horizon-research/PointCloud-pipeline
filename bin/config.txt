@@ -1,0 +1,46 @@
+[File Directory Parameters]
+Dataset_Directory: ../sample_data/
+Result_Directory: ../result/
+
+[Normal Estimation Parameters]
+Normal_Search_Radius: 0.75
+Normal_Use_Customized_KDTree: true
+Normal_Max_Leaf_Size: 64
+
+
+[Key Point Detection Parameters]
+Key_Point_Detection_Module: NARF
+
+
+[Feature Description Parameters]
+Feature_Search_Radius: 0.85
+Feature_Module: SHOT
+
+
+[Correspondence Estimation Parameters]
+Corr_Est_Use_Reciprocal_Search: true
+
+
+[Correspondence Rejection Parameters]
+Ransac_Threshold: 0.2
+Ransac_Max_Iteration: 10000
+
+
+[ICP Parameters]
+ICP_Solver: SVD
+ICP_Max_Iteration: 15
+ICP_Use_Ransac: true
+ICP_Use_Reciprocal_Search: true
+
+ICP_Transformation_Epsilon: 1e-9
+ICP_Max_Correspondence_Distance: 1.2
+ICP_Euclidean_Fitness_Epsilon: 1e-6
+ICP_Ransac_Outlier_Rejection_Threshold: 120
+
+ICP_Use_Customized_KDTree: true
+ICP_Max_Leaf_Size: 32
+
+[Approximation Search Parameters]
+Approx_Radius_Search_Para: 0
+Approx_Nearest_Search_Para: 0
+Save_Approx_Data: false
