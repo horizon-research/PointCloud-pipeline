@@ -91,6 +91,24 @@ Build & Run
 	
 3. Make sure the configurations are all set, then execute ```./pc_pipeline``` (default name). Hopefully the output will be similar to what's shown below: <br>
 	<img src="https://user-images.githubusercontent.com/19209239/62992636-32165280-be22-11e9-89fc-37230272b133.png" width=80% height=80%>
+
+Publication
+------------------
+This repository implements the configurable point cloud registration pipeline described in the following paper:
+
+T. Xu, B. Tian, and Y. Zhu, "Tigris: Architecture and Algorithms for 3D Perception in Point Clouds", In Proc. of MICRO, 2019.
+
+Kindly please consider citing this paper in your publications if it helps your research.
+
+```
+@inproceedings{xu2019tigris,
+  title={Tigris: Architecture and Algorithms for 3D Perception in Point Clouds},
+  author={Xu, Tiancheng and Tian, Boyuan and Zhu, Yuhao},
+  booktitle={Proceedings of the 52th International Symposium on Microarchitecture},
+  year={2019},
+  organization={ACM}
+}
+```
   
 Acknowledgement
 ------------------
