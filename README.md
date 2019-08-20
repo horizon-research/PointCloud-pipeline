@@ -94,12 +94,11 @@ Build & Run
 
 Publication
 ------------------
-This repository implements the configurable point cloud registration pipeline described in the following paper:
+This project implements the configurable point cloud registration pipeline described in the following paper:
 
 T. Xu, B. Tian, and Y. Zhu, "Tigris: Architecture and Algorithms for 3D Perception in Point Clouds", In Proc. of MICRO, 2019.
 
-Kindly please consider citing this paper in your publications if it helps your research.
-
+Please kindly consider citing this paper in your publications if it helps your research.
 ```
 @inproceedings{xu2019tigris,
   title={Tigris: Architecture and Algorithms for 3D Perception in Point Clouds},
