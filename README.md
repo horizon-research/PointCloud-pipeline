@@ -1,8 +1,7 @@
 Point Cloud Registration Pipeline 
 =================
 
-A general and flexible Point Cloud Registration pipeline built with Point Cloud Library ([PCL](http://pointclouds.org/)).<br> 
-This pipeline is excellent for (but not limited to) the development and test of point-cloud based registration algorithms as it is highly reconfigurable: the components of the pipeline could be reconfigured with different PCL kernels, or even your own implementations! 
+Artifact for paper "Tigris: Architecture and Algorithms for 3D Perception in Point Clouds" (MICRO'19): a general and flexible Point Cloud Registration pipeline built with Point Cloud Library ([PCL](http://pointclouds.org/)). Our implementation is excellent for development and evaluation of point-cloud registration algorithms as it is representative as well as highly configurable: components of the pipeline could be configured with various PCL kernels, or even your own implementations! 
 
 Pipeline Overview
 ------------------
@@ -96,7 +95,7 @@ Publication
 ------------------
 This project implements the configurable point cloud registration pipeline described in the following paper:
 
-T. Xu, B. Tian, and Y. Zhu, "Tigris: Architecture and Algorithms for 3D Perception in Point Clouds", In Proc. of MICRO, 2019.
+T. Xu*, B. Tian*, and Y. Zhu, "Tigris: Architecture and Algorithms for 3D Perception in Point Clouds", In Proc. of MICRO, 2019. (* co-primary authors)
 
 Please kindly consider citing this paper in your publications if it helps your research.
 ```
