@@ -57,7 +57,7 @@ There are several ways to configure the registration pipeline, i.e., choosing ke
 	| Normal_Search_Radius | Normal Estimation | Search radius | A floating point, e.g., 0.75 | 
 	| Normal_Use_Customized_KDTree | Normal Estimation | Use customized KD Tree or not | {true, false} |
 	| Normal_Max_Leaf_Size | Normal Estimation | Max leaf size for customized KD-Tree | An integer number, e.g., 32|	
-	| Key_Point_Detection_Module | Key-point Detection | Detection algorithm | {NARF, HARRIS} | 
+	| Key_Point_Detection_Module | Key-point Detection | Detection algorithm | {NARF, SIFT, HARRIS} | 
 	| Feature_Search_Radius | Descriptor Calculation | Search radius | A floating point, e.g., 0.85 | 
 	| Feature_Module | Descriptor Calculation | Feature descriptor type | {SHOT, FPFH} | 
 	| Corr_Est_Use_Reciprocal_Search | Key-Point Correspondence Estimation | To do reciprocal search or not | {true, false} | 

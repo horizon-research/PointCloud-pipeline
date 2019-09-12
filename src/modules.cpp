@@ -106,15 +106,16 @@ void keyPointsNARF(FeatureCloud &cloud)
  ****/
 void keyPointsSIFT(FeatureCloud &cloud)
 {
-	const float min_scale = 0.03f; 
 	//the standard deviation of the smallest scale in the scale space   //0.005
-	const int n_octaves = 8; 
+	const float min_scale = 0.03f; 
 	//the number of octaves (i.e. doublings of scale) to compute         //6
-	const int n_scales_per_octave = 12;
+	const int n_octaves = 8; 
 	//the number of scales to compute within each octave          //4
-	const float min_contrast = 0.08f;
+	const int n_scales_per_octave = 12;
 	//the minimum contrast required for detection             //0.005
-	const PointCloud::Ptr keyPoints_SIFT;
+	const float min_contrast = 0.08f;
+	
+	PointCloud::Ptr keyPoints_SIFT(new PointCloud);
 
 	// Estimate the sift interest points using z values from xyz as the Intensity variants.
 	pcl::SIFTKeypoint<PointT, pcl::PointWithScale> sift;
