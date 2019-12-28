@@ -650,11 +650,15 @@ private:
 
 			std::vector<Interval> bbox_l;
 			std::vector<Interval> bbox_r;
-			computeBoundingBox(left, left + lim2, bbox_l);
-			computeBoundingBox(left + lim2 + 1, right, bbox_r);
+			// computeBoundingBox(left, left + lim2, bbox_l);
+			// computeBoundingBox(left + lim2 + 1, right, bbox_r);
+			computeBoundingBox(left, left + split_delta, bbox_l);
+			computeBoundingBox(left + split_delta + 1, right, bbox_r);
 
-			node->left_child = divideTree(left, left + lim2, &bbox_l);
-			node->right_child = divideTree(left + lim2 + 1, right, &bbox_r);
+			// node->left_child = divideTree(left, left + lim2, &bbox_l);
+			// node->right_child = divideTree(left + lim2 + 1, right, &bbox_r);
+			node->left_child = divideTree(left, left + split_delta, &bbox_l);
+			node->right_child = divideTree(left + split_delta + 1, right, &bbox_r);
 
 			return node;
 		}
