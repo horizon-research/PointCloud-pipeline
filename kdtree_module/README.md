@@ -2,7 +2,7 @@
 
 ---------------
 #### Overview
-This is the our implementation of KD-Tree, i.e., the Customized KD-Tree, used in the pipeline. The implementation is based on FLANN's but with a few changes. It is identical to the content in 
+This is our own implementation of KD-Tree, i.e., the Customized KD-Tree, used in the pipeline. <br>The implementation is based on FLANN's but with a few changes. It is identical to the content in<br> 
 ``` ./pcl-1.7/pcl/horizon_kdtree.h``` 
 <br>
 
