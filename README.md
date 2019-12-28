@@ -91,6 +91,8 @@ Build & Run
 3. Make sure the configurations are all set, then execute ```./pc_pipeline``` (default name). Hopefully the output will be similar to what's shown below: <br>
 	<img src="https://user-images.githubusercontent.com/19209239/62992636-32165280-be22-11e9-89fc-37230272b133.png" width=80% height=80%>
 
+++ Switch to the **kdtree_module** directory to take a look at our implementation (mainly based on FLANN's) of KD-Tree construction and search. If the parameter ```Normal_Use_Customized_KDTree``` is set to be True, the pipeline would use our version of KD-Tree search in the Normal Estimation Stage. ```ICP_Use_Customized_KDTree``` works samely.
+
 Publication
 ------------------
 This project implements the configurable point cloud registration pipeline described in the following paper:
